@@ -60,7 +60,7 @@ fn is_nice_2(input: &str) -> bool {
 
     let mut last_window_equal_count = 0;
     let mut last_window = String::new();
-    
+
     for window in input.chars().collect::<Vec<_>>().windows(2) {
         let hash_key = format!("{}{}", window[0], window[1]);
 
@@ -69,7 +69,7 @@ fn is_nice_2(input: &str) -> bool {
                 .entry(hash_key.clone())
                 .and_modify(|f| *f += 1)
                 .or_insert(1);
-            
+
             last_window_equal_count = 0;
         } else {
             last_window_equal_count += 1;
