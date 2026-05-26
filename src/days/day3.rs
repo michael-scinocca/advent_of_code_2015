@@ -1,4 +1,4 @@
-use std::collections::{HashSet};
+use std::collections::HashSet;
 use std::fs::read_to_string;
 
 struct Point {
@@ -33,7 +33,7 @@ pub fn part1() {
         };
 
         let hash_key = point.hash_key();
-        
+
         if !houses.contains(&hash_key) {
             presents += 1;
             houses.insert(hash_key);
@@ -45,7 +45,7 @@ pub fn part1() {
 
 pub fn part2() {
     let input = read_to_string("data/day3.txt").unwrap();
-    
+
     let mut houses = HashSet::new();
 
     let mut turn = 0;
@@ -61,14 +61,14 @@ pub fn part2() {
             0 => {
                 turn = 1;
                 &mut point1
-            },
+            }
             1 => {
                 turn = 0;
                 &mut point2
-            },
-            _ => &mut point1
+            }
+            _ => &mut point1,
         };
-        
+
         match direction {
             '>' => mover.x += 1,
             '<' => mover.x -= 1,
@@ -78,7 +78,7 @@ pub fn part2() {
         };
 
         let hash_key = mover.hash_key();
-        
+
         if !houses.contains(&hash_key) {
             presents += 1;
             houses.insert(hash_key);
