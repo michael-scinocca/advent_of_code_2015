@@ -13,7 +13,10 @@ pub fn part1() {
     println!(
         "{}: {}",
         key,
-        dictionary.get(&key).unwrap().operate(&dictionary, &mut cache)
+        dictionary
+            .get(&key)
+            .unwrap()
+            .operate(&dictionary, &mut cache)
     );
 }
 
@@ -22,7 +25,7 @@ pub fn part2() {
     let mut cache = HashMap::new();
 
     cache.insert(String::from("b"), 16076);
-    
+
     for line in read_to_string("data/day7.txt").unwrap().lines() {
         process_input(&mut dictionary, line);
     }
@@ -32,7 +35,10 @@ pub fn part2() {
     println!(
         "{}: {}",
         key,
-        dictionary.get(&key).unwrap().operate(&dictionary, &mut cache)
+        dictionary
+            .get(&key)
+            .unwrap()
+            .operate(&dictionary, &mut cache)
     );
 }
 
@@ -98,9 +104,13 @@ struct OperationParam {
 }
 
 impl OperationParam {
-    fn resolve(&self, dictionary: &HashMap<String, Operation>, cache: &mut HashMap<String, u16>) -> u16 {
+    fn resolve(
+        &self,
+        dictionary: &HashMap<String, Operation>,
+        cache: &mut HashMap<String, u16>,
+    ) -> u16 {
         let key = self.value.clone();
-        
+
         if cache.contains_key(&key) {
             return *cache.get(&key).unwrap();
         }
@@ -110,7 +120,7 @@ impl OperationParam {
             .unwrap_or_else(|_| dictionary.get(&key).unwrap().operate(dictionary, cache));
 
         cache.insert(key, resolved);
-        
+
         resolved
     }
 }
@@ -125,14 +135,26 @@ enum Operation {
 }
 
 impl Operation {
-    fn operate(&self, dictionary: &HashMap<String, Operation>, cache: &mut HashMap<String, u16>) -> u16 {
+    fn operate(
+        &self,
+        dictionary: &HashMap<String, Operation>,
+        cache: &mut HashMap<String, u16>,
+    ) -> u16 {
         match self {
             Operation::Assign(val) => val.resolve(dictionary, cache),
             Operation::Not(val) => !val.resolve(dictionary, cache),
-            Operation::And(val1, val2) => val1.resolve(dictionary, cache) & val2.resolve(dictionary, cache),
-            Operation::Or(val1, val2) => val1.resolve(dictionary, cache) | val2.resolve(dictionary, cache),
-            Operation::LShift(val1, shift) => val1.resolve(dictionary, cache) << shift.resolve(dictionary, cache),
-            Operation::RShift(val1, shift) => val1.resolve(dictionary, cache) >> shift.resolve(dictionary, cache),
+            Operation::And(val1, val2) => {
+                val1.resolve(dictionary, cache) & val2.resolve(dictionary, cache)
+            }
+            Operation::Or(val1, val2) => {
+                val1.resolve(dictionary, cache) | val2.resolve(dictionary, cache)
+            }
+            Operation::LShift(val1, shift) => {
+                val1.resolve(dictionary, cache) << shift.resolve(dictionary, cache)
+            }
+            Operation::RShift(val1, shift) => {
+                val1.resolve(dictionary, cache) >> shift.resolve(dictionary, cache)
+            }
         }
     }
 }

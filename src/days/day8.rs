@@ -3,7 +3,7 @@ use std::fs::read_to_string;
 pub fn part1() {
     let mut total_chars = 0;
     let mut total_in_memory_chars = 0;
-    
+
     for line in read_to_string("data/day8.txt").unwrap().lines() {
         let (chars, in_memory_chars) = calculate_characters(line);
 
@@ -17,7 +17,7 @@ pub fn part1() {
 pub fn part2() {
     let mut total_chars = 0;
     let mut total_escaped_chars = 0;
-    
+
     for line in read_to_string("data/day8.txt").unwrap().lines() {
         let (chars, escaped_chars) = calculate_characters_2(line);
 
@@ -49,7 +49,7 @@ fn calculate_characters(input: &str) -> (u32, u32) {
 
             continue;
         }
-        
+
         if char != '\"' {
             count += 1;
         }
@@ -68,7 +68,7 @@ fn calculate_characters_2(input: &str) -> (u32, u32) {
 
             continue;
         }
-        
+
         if char == '\\' {
             let next = chars.next().unwrap();
 
@@ -79,10 +79,10 @@ fn calculate_characters_2(input: &str) -> (u32, u32) {
             } else {
                 count += 1;
             }
-            
+
             continue;
         }
-        
+
         count += 1;
     }
 
