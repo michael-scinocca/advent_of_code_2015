@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, fs::read_to_string, str::FromStr};
+use std::{collections::HashMap, fs::read_to_string, str::FromStr};
 
 struct Trip {
     pub from: String,
@@ -13,6 +13,12 @@ struct Location {
 
 struct Link {
     pub location_name: String,
+    pub distance: u32,
+}
+
+#[derive(Clone)]
+struct Journey {
+    pub cities: Vec<String>,
     pub distance: u32,
 }
 
@@ -56,7 +62,7 @@ pub fn part1() {
             location_name: trip.to.clone(),
             distance: trip.distance,
         });
-        
+
         let to_location = hash_map.entry(trip.to.clone()).or_insert(Location {
             name: trip.to.clone(),
             links: HashMap::new(),
@@ -69,20 +75,17 @@ pub fn part1() {
     }
 
     let mut trips = Vec::new();
-    
-    for key in hash_map.keys() {
-        let mut cities = Vec::new();
-        let mut trip: u32 = 0;
 
+    for key in hash_map.keys() {
         println!("Main {}", key);
 
-        cities.push(key.clone());
-        
-        run_trip(&hash_map, &key, &mut cities, &mut trip);
+        let journies = find_journies(&hash_map, key);
 
-        println!("{} = {}", cities.join(" -> "), trip);
-        
-        trips.push(trip);
+        for journey in journies {
+            println!("{} = {}", journey.cities.join(" -> "), journey.distance);
+
+            trips.push(journey.distance);
+        }
     }
 
     let min_trip = trips.into_iter().min().unwrap();
@@ -90,19 +93,57 @@ pub fn part1() {
     println!("{}", min_trip);
 }
 
-fn run_trip(hash_map: &HashMap<String, Location>, key: &String, cities: &mut Vec<String>, trip: &mut u32) {
-    println!("Run trip for {key}");
-    
+fn find_journies(hash_map: &HashMap<String, Location>, key: &String) -> Vec<Journey> {
+    println!("Find journies for {key}");
+
+    let mut journies = Vec::new();
+
     for link in &hash_map.get(key).unwrap().links {
-        if !cities.contains(&link.1.location_name) {
-            println!("Moving to {}", link.1.location_name);
+        let mut journey = Journey {
+            cities: Vec::new(),
+            distance: 0,
+        };
+
+        println!("Moving to {}", link.1.location_name);
+
+        journey.cities.push(key.clone());
+
+        journey.cities.push(link.1.location_name.clone());
+
+        journey.distance += link.1.distance;
+
+        continue_journey(hash_map, &link.1.location_name, &mut journey, &mut journies);
+    }
+
+    journies
+}
+
+fn continue_journey(
+    hash_map: &HashMap<String, Location>,
+    key: &String,
+    journey: &mut Journey,
+    journies: &mut Vec<Journey>,
+) {
+    println!("Continue journey for {key}");
+
+    for link in &hash_map.get(key).unwrap().links {
+        if journey.cities.contains(&link.1.location_name) {
+            if journey.cities.len() == hash_map.len() {
+                println!("Add jouney ending at {}", link.1.location_name);
+                
+                journies.push(journey.clone());
+            }
             
-            cities.push(link.1.location_name.clone());
-
-            *trip += link.1.distance;
-
-            run_trip(hash_map, &link.1.location_name, cities, trip);
+            continue;
         }
+
+        println!("Moving to {}", link.1.location_name);
+
+        journey.cities.push(link.1.location_name.clone());
+
+        journey.distance += link.1.distance;
+
+        continue_journey(hash_map, &link.1.location_name, journey, journies);
     }
 }
 
