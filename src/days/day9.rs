@@ -6,16 +6,6 @@ struct Trip {
     pub distance: u32,
 }
 
-struct Location {
-    pub name: String,
-    pub links: HashMap<String, Link>,
-}
-
-struct Link {
-    pub location_name: String,
-    pub distance: u32,
-}
-
 #[derive(Clone)]
 struct Journey {
     pub cities: Vec<String>,
@@ -47,104 +37,122 @@ impl FromStr for Trip {
     }
 }
 
-pub fn part1() {
+fn process_data() -> HashMap<String, HashMap<String, u32>> {
     let mut hash_map = HashMap::new();
 
     for line in read_to_string("data/day9.txt").unwrap().lines() {
         let trip = line.parse::<Trip>().unwrap();
 
-        let from_location = hash_map.entry(trip.from.clone()).or_insert(Location {
-            name: trip.from.clone(),
-            links: HashMap::new(),
-        });
+        let from_location = hash_map.entry(trip.from.clone()).or_insert(HashMap::new());
 
-        from_location.links.entry(trip.to.clone()).or_insert(Link {
-            location_name: trip.to.clone(),
-            distance: trip.distance,
-        });
+        from_location
+            .entry(trip.to.clone())
+            .or_insert(trip.distance);
 
-        let to_location = hash_map.entry(trip.to.clone()).or_insert(Location {
-            name: trip.to.clone(),
-            links: HashMap::new(),
-        });
+        let to_location = hash_map.entry(trip.to.clone()).or_insert(HashMap::new());
 
-        to_location.links.entry(trip.from.clone()).or_insert(Link {
-            location_name: trip.from.clone(),
-            distance: trip.distance,
-        });
+        to_location
+            .entry(trip.from.clone())
+            .or_insert(trip.distance);
     }
+
+    hash_map
+}
+
+pub fn part1() {
+    let hash_map = process_data();
 
     let mut trips = Vec::new();
 
-    for key in hash_map.keys() {
-        println!("Main {}", key);
-
-        let journies = find_journies(&hash_map, key);
-
-        for journey in journies {
-            println!("{} = {}", journey.cities.join(" -> "), journey.distance);
-
-            trips.push(journey.distance);
-        }
-    }
-
-    let min_trip = trips.into_iter().min().unwrap();
-
-    println!("{}", min_trip);
-}
-
-fn find_journies(hash_map: &HashMap<String, Location>, key: &String) -> Vec<Journey> {
-    println!("Find journies for {key}");
-
     let mut journies = Vec::new();
 
-    for link in &hash_map.get(key).unwrap().links {
+    for city in hash_map.keys() {
         let mut journey = Journey {
             cities: Vec::new(),
             distance: 0,
         };
 
-        println!("Moving to {}", link.1.location_name);
+        println!("Find journey for {city}");
 
-        journey.cities.push(key.clone());
+        journey.cities.push(city.clone());
 
-        journey.cities.push(link.1.location_name.clone());
+        let mut city_journies = Vec::new();
 
-        journey.distance += link.1.distance;
+        find_journey(&hash_map, city, &mut journey, &mut city_journies);
 
-        continue_journey(hash_map, &link.1.location_name, &mut journey, &mut journies);
+        journies.push(city_journies);
     }
 
-    journies
+    for journey in journies.iter().flatten() {
+        println!("{} = {}", journey.cities.join(" -> "), journey.distance);
+
+        trips.push(journey.distance);
+    }
+    
+    let min_trip = trips.into_iter().min().unwrap();
+
+    println!("{}", min_trip);
 }
 
-fn continue_journey(
-    hash_map: &HashMap<String, Location>,
-    key: &String,
+pub fn part2() {
+    let hash_map = process_data();
+
+    let mut trips = Vec::new();
+
+    let mut journies = Vec::new();
+
+    for city in hash_map.keys() {
+        let mut journey = Journey {
+            cities: Vec::new(),
+            distance: 0,
+        };
+
+        journey.cities.push(city.clone());
+
+        let mut city_journies = Vec::new();
+
+        find_journey(&hash_map, city, &mut journey, &mut city_journies);
+
+        journies.push(city_journies);
+    }
+
+    for journey in journies.iter().flatten() {
+        println!("{} = {}", journey.cities.join(" -> "), journey.distance);
+
+        trips.push(journey.distance);
+    }
+    
+    let max_trip = trips.into_iter().max().unwrap();
+
+    println!("{}", max_trip);
+}
+
+fn find_journey(
+    hash_map: &HashMap<String, HashMap<String, u32>>,
+    city: &String,
     journey: &mut Journey,
     journies: &mut Vec<Journey>,
 ) {
-    println!("Continue journey for {key}");
+    let visitable_links = hash_map
+        .get(city)
+        .unwrap()
+        .iter()
+        .filter(|x| !journey.cities.contains(x.0))
+        .collect::<Vec<(&String, &u32)>>();
 
-    for link in &hash_map.get(key).unwrap().links {
-        if journey.cities.contains(&link.1.location_name) {
-            if journey.cities.len() == hash_map.len() {
-                println!("Add jouney ending at {}", link.1.location_name);
-                
-                journies.push(journey.clone());
-            }
-            
-            continue;
-        }
+    if visitable_links.len() == 0 {
+        journies.push(journey.clone());
 
-        println!("Moving to {}", link.1.location_name);
+        return;
+    }
 
-        journey.cities.push(link.1.location_name.clone());
+    for link in visitable_links {
+        journey.cities.push(link.0.clone());
+        journey.distance += link.1;
 
-        journey.distance += link.1.distance;
+        find_journey(hash_map, link.0, journey, journies);
 
-        continue_journey(hash_map, &link.1.location_name, journey, journies);
+        journey.cities.pop();
+        journey.distance -= link.1;
     }
 }
-
-pub fn part2() {}
