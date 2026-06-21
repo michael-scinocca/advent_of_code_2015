@@ -140,7 +140,7 @@ fn find_journey(
         .filter(|x| !journey.cities.contains(x.0))
         .collect::<Vec<(&String, &u32)>>();
 
-    if visitable_links.len() == 0 {
+    if visitable_links.is_empty() {
         journies.push(journey.clone());
 
         return;
