@@ -76,14 +76,10 @@ pub fn part1() {
 
         journey.cities.push(city.clone());
 
-        let mut city_journies = Vec::new();
-
-        find_journey(&hash_map, city, &mut journey, &mut city_journies);
-
-        journies.push(city_journies);
+        find_journey(&hash_map, city, &mut journey, &mut journies);
     }
 
-    for journey in journies.iter().flatten() {
+    for journey in journies {
         println!("{} = {}", journey.cities.join(" -> "), journey.distance);
 
         trips.push(journey.distance);
@@ -109,14 +105,10 @@ pub fn part2() {
 
         journey.cities.push(city.clone());
 
-        let mut city_journies = Vec::new();
-
-        find_journey(&hash_map, city, &mut journey, &mut city_journies);
-
-        journies.push(city_journies);
+        find_journey(&hash_map, city, &mut journey, &mut journies);
     }
 
-    for journey in journies.iter().flatten() {
+    for journey in journies {
         println!("{} = {}", journey.cities.join(" -> "), journey.distance);
 
         trips.push(journey.distance);
@@ -133,12 +125,12 @@ fn find_journey(
     journey: &mut Journey,
     journies: &mut Vec<Journey>,
 ) {
-    let visitable_links = hash_map
+    let visitable_links: Vec<_> = hash_map
         .get(city)
         .unwrap()
         .iter()
         .filter(|x| !journey.cities.contains(x.0))
-        .collect::<Vec<(&String, &u32)>>();
+        .collect();
 
     if visitable_links.is_empty() {
         journies.push(journey.clone());
