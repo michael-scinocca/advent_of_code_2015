@@ -2,7 +2,7 @@ pub fn part1() {
     let mut input = "1113122113";
 
     let mut output = String::new();
-    
+
     for _ in 0..40 {
         output = transform(input);
         input = output.as_str();
@@ -15,7 +15,7 @@ pub fn part2() {
     let mut input = "1113122113";
 
     let mut output = String::new();
-    
+
     for _ in 0..50 {
         output = transform(input);
         input = output.as_str();
@@ -29,7 +29,7 @@ fn transform(input: &str) -> String {
 
     let mut count = 0;
     let mut current_digit = ' ';
-    
+
     for digit in input.chars() {
         if current_digit == ' ' {
             current_digit = digit;
@@ -48,7 +48,7 @@ fn transform(input: &str) -> String {
 
     output.push_str(&count.to_string());
     output.push(current_digit);
-    
+
     output
 }
 
@@ -74,10 +74,10 @@ mod tests {
     #[test]
     fn test_1211() {
         assert_eq!(transform("1211"), "111221");
-    } 
+    }
 
     #[test]
     fn test_111221() {
         assert_eq!(transform("111221"), "312211");
-    } 
+    }
 }

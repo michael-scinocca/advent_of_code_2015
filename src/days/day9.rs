@@ -84,7 +84,7 @@ pub fn part1() {
 
         trips.push(journey.distance);
     }
-    
+
     let min_trip = trips.into_iter().min().unwrap();
 
     println!("{}", min_trip);
@@ -113,7 +113,7 @@ pub fn part2() {
 
         trips.push(journey.distance);
     }
-    
+
     let max_trip = trips.into_iter().max().unwrap();
 
     println!("{}", max_trip);
