@@ -31,7 +31,7 @@ fn get_sum(input: &str, blacklist: &Vec<&str>) -> i32 {
 fn parse_value(chars: &mut Peekable<Chars<'_>>, blacklist: &Vec<&str>) -> (i32, String) {
     let mut sum = 0;
     let mut property_value = String::new();
-    
+
     if chars.peek().unwrap() == &'{' {
         sum += parse_object(chars, blacklist);
     } else if chars.peek().unwrap() == &'[' {
@@ -77,7 +77,7 @@ fn parse_object(chars: &mut Peekable<Chars<'_>>, blacklist: &Vec<&str>) -> i32 {
     let mut sum = 0;
 
     let block = parse_block(chars, '{', '}');
-    
+
     let mut chars = block.chars().peekable();
 
     while let Some(char) = chars.next() {
