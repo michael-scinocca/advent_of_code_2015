@@ -3,7 +3,7 @@ use std::{fs::read_to_string, iter::Peekable, str::Chars};
 pub fn part1() {
     let input = read_to_string("data/day12.txt").unwrap();
 
-    let sum = get_sum(&input);
+    let sum = get_sum(&input, &vec![]);
 
     println!("{sum}");
 }
@@ -11,31 +11,19 @@ pub fn part1() {
 pub fn part2() {
     let input = read_to_string("data/day12.txt").unwrap();
 
-    let sum = get_sum_no_red(&input);
+    let sum = get_sum(&input, &vec!["\"red\""]);
 
     println!("{sum}");
 }
 
-fn get_sum(input: &str) -> i32 {
+fn get_sum(input: &str, blacklist: &Vec<&str>) -> i32 {
     let mut sum = 0;
 
     let input = input.replace(" ", "");
 
     let mut chars = input.chars().peekable();
 
-    sum += parse_value(&mut chars, &vec![]).0;
-
-    sum
-}
-
-fn get_sum_no_red(input: &str) -> i32 {
-    let mut sum = 0;
-
-    let input = input.replace(" ", "");
-
-    let mut chars = input.chars().peekable();
-
-    sum += parse_value(&mut chars, &vec!["\"red\""]).0;
+    sum += parse_value(&mut chars, blacklist).0;
 
     sum
 }
