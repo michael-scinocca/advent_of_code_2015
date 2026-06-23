@@ -8,7 +8,13 @@ pub fn part1() {
     println!("{sum}");
 }
 
-pub fn part2() {}
+pub fn part2() {
+    let input = read_to_string("data/day12.txt").unwrap();
+
+    let sum = get_sum_no_red(&input);
+
+    println!("{sum}");
+}
 
 fn get_sum(input: &str) -> i32 {
     let mut sum = 0;
@@ -17,21 +23,32 @@ fn get_sum(input: &str) -> i32 {
 
     let mut chars = input.chars().peekable();
 
-    sum += parse_value(&mut chars);
+    sum += parse_value(&mut chars, &vec![]).0;
 
     sum
 }
 
-fn parse_value(chars: &mut Peekable<Chars<'_>>) -> i32 {
+fn get_sum_no_red(input: &str) -> i32 {
     let mut sum = 0;
 
-    if chars.peek().unwrap() == &'{' {
-        sum += parse_object(chars);
-    } else if chars.peek().unwrap() == &'[' {
-        sum += parse_array(chars);
-    } else {
-        let mut property_value = String::new();
+    let input = input.replace(" ", "");
 
+    let mut chars = input.chars().peekable();
+
+    sum += parse_value(&mut chars, &vec!["\"red\""]).0;
+
+    sum
+}
+
+fn parse_value(chars: &mut Peekable<Chars<'_>>, blacklist: &Vec<&str>) -> (i32, String) {
+    let mut sum = 0;
+    let mut property_value = String::new();
+    
+    if chars.peek().unwrap() == &'{' {
+        sum += parse_object(chars, blacklist);
+    } else if chars.peek().unwrap() == &'[' {
+        sum += parse_array(chars, blacklist);
+    } else {
         for char in chars {
             if char == ',' {
                 break;
@@ -47,10 +64,10 @@ fn parse_value(chars: &mut Peekable<Chars<'_>>) -> i32 {
         }
     }
 
-    sum
+    (sum, property_value)
 }
 
-fn parse_array(chars: &mut Peekable<Chars<'_>>) -> i32 {
+fn parse_array(chars: &mut Peekable<Chars<'_>>, blacklist: &Vec<&str>) -> i32 {
     let mut sum = 0;
 
     let block = parse_block(chars, '[', ']');
@@ -62,22 +79,28 @@ fn parse_array(chars: &mut Peekable<Chars<'_>>) -> i32 {
             chars.next();
         }
 
-        sum += parse_value(&mut chars);
+        sum += parse_value(&mut chars, blacklist).0;
     }
 
     sum
 }
 
-fn parse_object(chars: &mut Peekable<Chars<'_>>) -> i32 {
+fn parse_object(chars: &mut Peekable<Chars<'_>>, blacklist: &Vec<&str>) -> i32 {
     let mut sum = 0;
 
     let block = parse_block(chars, '{', '}');
-
+    
     let mut chars = block.chars().peekable();
 
     while let Some(char) = chars.next() {
         if char == ':' {
-            sum += parse_value(&mut chars);
+            let result = parse_value(&mut chars, blacklist);
+
+            if blacklist.contains(&result.1.as_str()) {
+                return 0;
+            }
+
+            sum += result.0;
         }
     }
 
@@ -133,5 +156,14 @@ mod tests {
     )]
     fn test_get_sum(#[case] input: &str, #[case] expected: i32) {
         assert_eq!(get_sum(input), expected);
+    }
+
+    #[rstest]
+    #[case("[1,2,3]", 6)]
+    #[case("[1,{\"c\":\"red\",\"b\":2},3]", 4)]
+    #[case("{\"d\":\"red\",\"e\":[1,2,3,4],\"f\":5}", 0)]
+    #[case("[1,\"red\",5]", 6)]
+    fn test_get_sum_no_red(#[case] input: &str, #[case] expected: i32) {
+        assert_eq!(get_sum_no_red(input), expected);
     }
 }
