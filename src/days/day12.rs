@@ -16,7 +16,7 @@ fn get_sum(input: &str) -> i32 {
     let input = input.replace(" ", "");
 
     let mut chars = input.chars().peekable();
-    
+
     sum += parse_value(&mut chars);
 
     sum
@@ -25,8 +25,6 @@ fn get_sum(input: &str) -> i32 {
 fn parse_value(chars: &mut Peekable<Chars<'_>>) -> i32 {
     let mut sum = 0;
 
-    println!("Parse value {}", chars.clone().collect::<String>());
-
     if chars.peek().unwrap() == &'{' {
         sum += parse_object(chars);
     } else if chars.peek().unwrap() == &'[' {
@@ -34,7 +32,7 @@ fn parse_value(chars: &mut Peekable<Chars<'_>>) -> i32 {
     } else {
         let mut property_value = String::new();
 
-        while let Some(char) = chars.next() {
+        for char in chars {
             if char == ',' {
                 break;
             }
@@ -43,8 +41,6 @@ fn parse_value(chars: &mut Peekable<Chars<'_>>) -> i32 {
         }
 
         if !property_value.starts_with('"') {
-            println!("Parse int {}", property_value);
-            
             let number_value: i32 = property_value.parse().unwrap();
 
             sum += number_value;
@@ -59,15 +55,13 @@ fn parse_array(chars: &mut Peekable<Chars<'_>>) -> i32 {
 
     let block = parse_block(chars, '[', ']');
 
-    println!("Array {}", block);
-     
-    let value = &mut String::from(block);
-    
-    let mut chars = value.chars().peekable();
-    
-    while let Some(_) = chars.peek() {
-        println!("Value {}", chars.clone().collect::<String>());
-        
+    let mut chars = block.chars().peekable();
+
+    while let Some(char) = chars.peek() {
+        if char == &',' {
+            chars.next();
+        }
+
         sum += parse_value(&mut chars);
     }
 
@@ -76,19 +70,13 @@ fn parse_array(chars: &mut Peekable<Chars<'_>>) -> i32 {
 
 fn parse_object(chars: &mut Peekable<Chars<'_>>) -> i32 {
     let mut sum = 0;
-    
+
     let block = parse_block(chars, '{', '}');
 
-    println!("Object {}", block);
-        
-    let value = &mut String::from(block);
-    
-    let mut chars = value.chars().peekable();
-    
+    let mut chars = block.chars().peekable();
+
     while let Some(char) = chars.next() {
         if char == ':' {
-            println!("Value {}", chars.clone().collect::<String>());
-            
             sum += parse_value(&mut chars);
         }
     }
@@ -101,7 +89,7 @@ fn parse_block(chars: &mut Peekable<Chars<'_>>, start_block: char, end_block: ch
 
     let mut block_depth = 0;
 
-    while let Some(char) = chars.next() {
+    for char in chars {
         current_block.push(char);
 
         if char == start_block {
@@ -114,13 +102,13 @@ fn parse_block(chars: &mut Peekable<Chars<'_>>, start_block: char, end_block: ch
             if block_depth == 0 {
                 break;
             }
-            
+
             continue;
-        } 
+        }
     }
 
-    let current_block = current_block.trim_start_matches(start_block);
-    let current_block = current_block.trim_end_matches(end_block);
+    let current_block = current_block.strip_prefix(start_block).unwrap();
+    let current_block = current_block.strip_suffix(end_block).unwrap();
 
     String::from(current_block)
 }
@@ -139,6 +127,10 @@ mod tests {
     #[case("[-1,{\"a\":1}]", 0)]
     #[case("{\"a\": 1, \"b\": \"hello\"}", 1)]
     #[case("{\"e\":[[{\"e\":86,\"c\":1}]]}", 87)]
+    #[case(
+        "[[\"orange\",\"green\",\"green\",\"red\",-25],-16,104,177,\"red\"],",
+        240
+    )]
     fn test_get_sum(#[case] input: &str, #[case] expected: i32) {
         assert_eq!(get_sum(input), expected);
     }
