@@ -143,7 +143,7 @@ mod tests {
         240
     )]
     fn test_get_sum(#[case] input: &str, #[case] expected: i32) {
-        assert_eq!(get_sum(input), expected);
+        assert_eq!(get_sum(input, &vec![]), expected);
     }
 
     #[rstest]
@@ -152,6 +152,6 @@ mod tests {
     #[case("{\"d\":\"red\",\"e\":[1,2,3,4],\"f\":5}", 0)]
     #[case("[1,\"red\",5]", 6)]
     fn test_get_sum_no_red(#[case] input: &str, #[case] expected: i32) {
-        assert_eq!(get_sum_no_red(input), expected);
+        assert_eq!(get_sum(input, &vec!["\"red\""]), expected);
     }
 }
