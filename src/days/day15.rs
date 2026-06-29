@@ -74,19 +74,44 @@ fn get_ingredients() -> Vec<Ingredient> {
         let name = words.next().unwrap().trim_end_matches(":").to_string();
         words.next();
 
-        let capacity = words.next().unwrap().trim_end_matches(",").parse::<i32>().unwrap();
+        let capacity = words
+            .next()
+            .unwrap()
+            .trim_end_matches(",")
+            .parse::<i32>()
+            .unwrap();
         words.next();
 
-        let durability = words.next().unwrap().trim_end_matches(",").parse::<i32>().unwrap();
+        let durability = words
+            .next()
+            .unwrap()
+            .trim_end_matches(",")
+            .parse::<i32>()
+            .unwrap();
         words.next();
 
-        let flavour = words.next().unwrap().trim_end_matches(",").parse::<i32>().unwrap();
+        let flavour = words
+            .next()
+            .unwrap()
+            .trim_end_matches(",")
+            .parse::<i32>()
+            .unwrap();
         words.next();
 
-        let texture = words.next().unwrap().trim_end_matches(",").parse::<i32>().unwrap();
+        let texture = words
+            .next()
+            .unwrap()
+            .trim_end_matches(",")
+            .parse::<i32>()
+            .unwrap();
         words.next();
 
-        let calories = words.next().unwrap().trim_end_matches(",").parse::<i32>().unwrap();
+        let calories = words
+            .next()
+            .unwrap()
+            .trim_end_matches(",")
+            .parse::<i32>()
+            .unwrap();
         words.next();
 
         ingredients.push(Ingredient {
@@ -102,7 +127,11 @@ fn get_ingredients() -> Vec<Ingredient> {
     ingredients
 }
 
-fn find_optimum<'a>(max_quantity: u32, ingredients: &'a [Ingredient], calories: Option<i32>) -> (i32, Recipe<'a>) {
+fn find_optimum<'a>(
+    max_quantity: u32,
+    ingredients: &'a [Ingredient],
+    calories: Option<i32>,
+) -> (i32, Recipe<'a>) {
     let mut max_score = 0;
     let mut max_recipe = Recipe::new();
 
@@ -149,10 +178,12 @@ fn find_optimum_working_recipe<'a>(
         } else {
             let score = working_recipe.get_score();
 
-            if let Some(calories) = calories && working_recipe.get_calories() != calories {
+            if let Some(calories) = calories
+                && working_recipe.get_calories() != calories
+            {
                 continue;
             }
-            
+
             if score > *max_score {
                 *max_score = score;
                 *max_recipe = working_recipe.clone();
