@@ -6,7 +6,7 @@ struct Ingredient {
     durability: i32,
     flavour: i32,
     texture: i32,
-    _calories: i32,
+    calories: i32,
 }
 
 #[derive(Clone)]
@@ -53,6 +53,16 @@ impl<'a> Recipe<'a> {
 
         capacity * durability * flavour * texture
     }
+
+    fn get_calories(&self) -> i32 {
+        let mut calories = 0;
+
+        for ingredient in self.ingredients.iter() {
+            calories += ingredient.1.calories * ingredient.0 as i32;
+        }
+
+        calories
+    }
 }
 
 fn get_ingredients() -> Vec<Ingredient> {
@@ -85,14 +95,14 @@ fn get_ingredients() -> Vec<Ingredient> {
             durability,
             flavour,
             texture,
-            _calories: calories,
+            calories,
         })
     }
 
     ingredients
 }
 
-fn find_optimum<'a>(max_quantity: u32, ingredients: &'a [Ingredient]) -> (i32, Recipe<'a>) {
+fn find_optimum<'a>(max_quantity: u32, ingredients: &'a [Ingredient], calories: Option<i32>) -> (i32, Recipe<'a>) {
     let mut max_score = 0;
     let mut max_recipe = Recipe::new();
 
@@ -101,6 +111,7 @@ fn find_optimum<'a>(max_quantity: u32, ingredients: &'a [Ingredient]) -> (i32, R
     find_optimum_working_recipe(
         max_quantity,
         ingredients,
+        calories,
         &mut recipe,
         &mut max_score,
         &mut max_recipe,
@@ -112,6 +123,7 @@ fn find_optimum<'a>(max_quantity: u32, ingredients: &'a [Ingredient]) -> (i32, R
 fn find_optimum_working_recipe<'a>(
     max_quantity: u32,
     ingredients: &'a [Ingredient],
+    calories: Option<i32>,
     working_recipe: &mut Recipe<'a>,
     max_score: &mut i32,
     max_recipe: &mut Recipe<'a>,
@@ -129,6 +141,7 @@ fn find_optimum_working_recipe<'a>(
             find_optimum_working_recipe(
                 max_quantity - i,
                 &ingredients[1..],
+                calories,
                 working_recipe,
                 max_score,
                 max_recipe,
@@ -136,6 +149,10 @@ fn find_optimum_working_recipe<'a>(
         } else {
             let score = working_recipe.get_score();
 
+            if let Some(calories) = calories && working_recipe.get_calories() != calories {
+                continue;
+            }
+            
             if score > *max_score {
                 *max_score = score;
                 *max_recipe = working_recipe.clone();
@@ -147,7 +164,7 @@ fn find_optimum_working_recipe<'a>(
 pub fn part1() {
     let ingredients = get_ingredients();
 
-    let (score, recipe) = find_optimum(100, &ingredients);
+    let (score, recipe) = find_optimum(100, &ingredients, None);
 
     println!("{}", score);
 
@@ -156,7 +173,17 @@ pub fn part1() {
     }
 }
 
-pub fn part2() {}
+pub fn part2() {
+    let ingredients = get_ingredients();
+
+    let (score, recipe) = find_optimum(100, &ingredients, Some(500));
+
+    println!("{}", score);
+
+    for ingredient in recipe.ingredients {
+        println!("{} {}", ingredient.0, ingredient.1.name);
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -170,7 +197,7 @@ mod tests {
                 durability: -2,
                 flavour: 6,
                 texture: 3,
-                _calories: 8,
+                calories: 8,
             },
             Ingredient {
                 name: "cinnamon".to_string(),
@@ -178,7 +205,7 @@ mod tests {
                 durability: 3,
                 flavour: -2,
                 texture: -1,
-                _calories: 3,
+                calories: 3,
             },
         ]
     }
@@ -208,8 +235,17 @@ mod tests {
     fn test_optimal_ingredients() {
         let ingredients = get_test_ingredients();
 
-        let score = find_optimum(100, &ingredients);
+        let score = find_optimum(100, &ingredients, None);
 
         assert_eq!(score.0, 62842880);
+    }
+
+    #[test]
+    fn test_optimal_ingredients_calories() {
+        let ingredients = get_test_ingredients();
+
+        let score = find_optimum(100, &ingredients, Some(500));
+
+        assert_eq!(score.0, 57600000);
     }
 }
