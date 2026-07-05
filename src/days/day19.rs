@@ -8,12 +8,21 @@ pub fn part1() {
 
     let seed = "CRnSiRnCaPTiMgYCaPTiRnFArSiThFArCaSiThSiThPBCaCaSiRnSiRnTiTiMgArPBCaPMgYPTiRnFArFArCaSiRnBPMgArPRnCaPTiRnFArCaSiThCaCaFArPBCaCaPTiTiRnFArCaSiRnSiAlYSiThRnFArArCaSiRnBFArCaCaSiRnSiThCaCaCaFYCaPTiBCaSiThCaSiThPMgArSiRnCaPBFYCaCaFArCaCaCaCaSiThCaSiRnPRnFArPBSiThPRnFArSiRnMgArCaFYFArCaSiRnSiAlArTiTiTiTiTiTiTiRnPMgArPTiTiTiBSiRnSiAlArTiTiRnPMgArCaFYBPBPTiRnSiRnMgArSiThCaFArCaSiThFArPRnFArCaSiRnTiBSiThSiRnSiAlYCaFArPRnFArSiThCaFArCaCaSiThCaCaCaSiRnPRnCaFArFYPMgArCaPBCaPBSiRnFYPBCaFArCaSiAl";
 
-    let combinations = get_combinations(seed.to_string(), &transformations);
+    let combinations = get_combinations(seed, &transformations);
 
     println!("{}", combinations.len());
 }
 
-pub fn part2() {}
+pub fn part2() {
+    let transformations = get_transformations();
+
+    let seed = "e";
+    let target = "CRnSiRnCaPTiMgYCaPTiRnFArSiThFArCaSiThSiThPBCaCaSiRnSiRnTiTiMgArPBCaPMgYPTiRnFArFArCaSiRnBPMgArPRnCaPTiRnFArCaSiThCaCaFArPBCaCaPTiTiRnFArCaSiRnSiAlYSiThRnFArArCaSiRnBFArCaCaSiRnSiThCaCaCaFYCaPTiBCaSiThCaSiThPMgArSiRnCaPBFYCaCaFArCaCaCaCaSiThCaSiRnPRnFArPBSiThPRnFArSiRnMgArCaFYFArCaSiRnSiAlArTiTiTiTiTiTiTiRnPMgArPTiTiTiBSiRnSiAlArTiTiRnPMgArCaFYBPBPTiRnSiRnMgArSiThCaFArCaSiThFArPRnFArCaSiRnTiBSiThSiRnSiAlYCaFArPRnFArSiThCaFArCaCaSiThCaCaCaSiRnPRnCaFArFYPMgArCaPBCaPBSiRnFYPBCaFArCaSiAl";
+
+    let steps = fabricate_molecule(seed, target, &transformations);
+
+    println!("{steps}");
+}
 
 fn get_transformations() -> HashMap<String, Vec<String>> {
     let mut transformations = HashMap::new();
@@ -33,10 +42,7 @@ fn get_transformations() -> HashMap<String, Vec<String>> {
     transformations
 }
 
-fn get_combinations(
-    seed: String,
-    transformations: &HashMap<String, Vec<String>>,
-) -> HashSet<String> {
+fn get_combinations(seed: &str, transformations: &HashMap<String, Vec<String>>) -> HashSet<String> {
     let mut combinations = HashSet::new();
 
     for key in transformations.keys() {
@@ -47,7 +53,7 @@ fn get_combinations(
                 if let Some(char_transformations) = char_transformations {
                     for char_transformation in char_transformations {
                         combinations.insert(
-                            String::from(&seed[0..index])
+                            seed[0..index].to_string()
                                 + &seed[index..].replacen(&key.to_string(), char_transformation, 1),
                         );
                     }
@@ -57,6 +63,88 @@ fn get_combinations(
     }
 
     combinations
+}
+
+fn fabricate_molecule(
+    seed: &str,
+    target: &str,
+    transformations: &HashMap<String, Vec<String>>,
+) -> u32 {
+    let mut found = false;
+
+    let mut step_stack = Vec::new();
+    let mut step_stacks = Vec::new();
+
+    fabricate_molecule_work(
+        seed,
+        target,
+        transformations,
+        &mut found,
+        &mut step_stack,
+        &mut step_stacks,
+    );
+
+    step_stacks.iter().map(|x| x.len()).min().unwrap() as u32
+}
+
+fn fabricate_molecule_work(
+    seed: &str,
+    target: &str,
+    transformations: &HashMap<String, Vec<String>>,
+    found: &mut bool,
+    step_stack: &mut Vec<String>,
+    step_stacks: &mut Vec<Vec<String>>,
+) {
+    for key in transformations.keys() {
+        if *found {
+            return;
+        }
+        for index in 0..seed.len() {
+            if *found {
+                return;
+            }
+            if seed[index..].starts_with(key) {
+                if *found {
+                    return;
+                }
+                let char_transformations = transformations.get(key);
+
+                if let Some(char_transformations) = char_transformations {
+                    for char_transformation in char_transformations {
+                        if *found {
+                            return;
+                        }
+
+                        let transformed = seed[0..index].to_string()
+                            + &seed[index..].replacen(&key.to_string(), char_transformation, 1);
+
+                        step_stack.push(transformed.clone());
+
+                        if transformed == target {
+                            step_stacks.push(step_stack.clone());
+
+                            *found = true;
+                            return;
+                        }
+
+                        if transformed.len() <= target.len() {
+                            fabricate_molecule_work(
+                                &transformed,
+                                target,
+                                transformations,
+                                found,
+                                step_stack,
+                                step_stacks,
+                            );
+                            step_stack.pop();
+                        } else {
+                            step_stack.pop();
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -69,7 +157,7 @@ mod tests {
         transformations.insert("H".to_owned(), vec!["HO".to_owned(), "OH".to_owned()]);
         transformations.insert("O".to_owned(), vec!["HH".to_owned()]);
 
-        let combinations = get_combinations(String::from("HOH"), &transformations);
+        let combinations = get_combinations("HOH", &transformations);
 
         assert_eq!(4, combinations.len());
         assert_eq!(true, combinations.contains("HOOH"));
@@ -84,7 +172,7 @@ mod tests {
         transformations.insert("H".to_owned(), vec!["HO".to_owned(), "OH".to_owned()]);
         transformations.insert("O".to_owned(), vec!["HH".to_owned()]);
 
-        let combinations = get_combinations(String::from("HOHOHO"), &transformations);
+        let combinations = get_combinations("HOHOHO", &transformations);
 
         assert_eq!(7, combinations.len());
     }
@@ -95,7 +183,7 @@ mod tests {
         transformations.insert("Ag".to_owned(), vec!["H".to_owned(), "Y".to_owned()]);
         transformations.insert("O".to_owned(), vec!["B".to_owned()]);
 
-        let combinations = get_combinations(String::from("AgKOAg"), &transformations);
+        let combinations = get_combinations("AgKOAg", &transformations);
 
         assert_eq!(5, combinations.len());
         assert_eq!(true, combinations.contains("HKOAg"));
@@ -103,5 +191,21 @@ mod tests {
         assert_eq!(true, combinations.contains("AgKOH"));
         assert_eq!(true, combinations.contains("AgKOY"));
         assert_eq!(true, combinations.contains("AgKBAg"));
+    }
+
+    #[test]
+    fn test_molecule_fabrications() {
+        let mut transformations = HashMap::new();
+        transformations.insert("e".to_owned(), vec!["H".to_owned(), "O".to_owned()]);
+        transformations.insert("H".to_owned(), vec!["HO".to_owned(), "OH".to_owned()]);
+        transformations.insert("O".to_owned(), vec!["HH".to_owned()]);
+
+        let steps = fabricate_molecule("e", "HOH", &transformations);
+
+        assert_eq!(3, steps);
+
+        let steps = fabricate_molecule("e", "HOHOHO", &transformations);
+
+        assert_eq!(6, steps);
     }
 }
