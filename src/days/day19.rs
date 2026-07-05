@@ -70,8 +70,6 @@ fn fabricate_molecule(
     target: &str,
     transformations: &HashMap<String, Vec<String>>,
 ) -> u32 {
-    let mut found = false;
-
     let mut step_stack = Vec::new();
     let mut step_stacks = Vec::new();
 
@@ -79,7 +77,6 @@ fn fabricate_molecule(
         seed,
         target,
         transformations,
-        &mut found,
         &mut step_stack,
         &mut step_stacks,
     );
@@ -91,30 +88,16 @@ fn fabricate_molecule_work(
     seed: &str,
     target: &str,
     transformations: &HashMap<String, Vec<String>>,
-    found: &mut bool,
     step_stack: &mut Vec<String>,
     step_stacks: &mut Vec<Vec<String>>,
 ) {
     for key in transformations.keys() {
-        if *found {
-            return;
-        }
         for index in 0..seed.len() {
-            if *found {
-                return;
-            }
             if seed[index..].starts_with(key) {
-                if *found {
-                    return;
-                }
                 let char_transformations = transformations.get(key);
 
                 if let Some(char_transformations) = char_transformations {
                     for char_transformation in char_transformations {
-                        if *found {
-                            return;
-                        }
-
                         let transformed = seed[0..index].to_string()
                             + &seed[index..].replacen(&key.to_string(), char_transformation, 1);
 
@@ -122,8 +105,6 @@ fn fabricate_molecule_work(
 
                         if transformed == target {
                             step_stacks.push(step_stack.clone());
-
-                            *found = true;
                             return;
                         }
 
@@ -132,7 +113,6 @@ fn fabricate_molecule_work(
                                 &transformed,
                                 target,
                                 transformations,
-                                found,
                                 step_stack,
                                 step_stacks,
                             );
