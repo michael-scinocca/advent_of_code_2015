@@ -70,28 +70,52 @@ fn fabricate_molecule(
     target: &str,
     transformations: &HashMap<String, Vec<String>>,
 ) -> u32 {
-    let mut step_stack = Vec::new();
-    let mut step_stacks = Vec::new();
+    let mut steps = 0;
 
-    fabricate_molecule_work(
-        seed,
-        target,
-        transformations,
-        &mut step_stack,
-        &mut step_stacks,
-    );
+    let mut reversed: HashMap<String, Vec<String>> = HashMap::new();
 
-    step_stacks.iter().map(|x| x.len()).min().unwrap() as u32
+    for (key, vals) in transformations {
+        for val in vals {
+            reversed.entry(val.clone()).or_default().push(key.clone());
+        }
+    }
+
+    while steps == 0 {
+        let mut working_steps = 0;
+        let mut iterations = 0;
+        let mut quit = false;
+
+        fabricate_molecule_work(
+            target,
+            seed,
+            &reversed,
+            &mut working_steps,
+            &mut steps,
+            &mut iterations,
+            &mut quit,
+        );
+    }
+
+    steps as u32
 }
 
 fn fabricate_molecule_work(
     seed: &str,
     target: &str,
     transformations: &HashMap<String, Vec<String>>,
-    step_stack: &mut Vec<String>,
-    step_stacks: &mut Vec<Vec<String>>,
+    working_steps: &mut i32,
+    steps: &mut i32,
+    iterations: &mut i32,
+    quit: &mut bool,
 ) {
-    for key in transformations.keys() {
+    if *quit {
+        return;
+    }
+
+    let mut keys: Vec<_> = transformations.keys().collect();
+    keys.sort_unstable_by_key(|b| std::cmp::Reverse(b.len()));
+
+    for key in keys {
         for index in 0..seed.len() {
             if seed[index..].starts_with(key) {
                 let char_transformations = transformations.get(key);
@@ -101,24 +125,35 @@ fn fabricate_molecule_work(
                         let transformed = seed[0..index].to_string()
                             + &seed[index..].replacen(&key.to_string(), char_transformation, 1);
 
-                        step_stack.push(transformed.clone());
+                        *working_steps += 1;
+                        *iterations += 1;
 
-                        if transformed == target {
-                            step_stacks.push(step_stack.clone());
+                        if transformed == target && !*quit {
+                            *steps = *working_steps;
+
+                            *quit = true;
+
                             return;
                         }
 
-                        if transformed.len() <= target.len() {
+                        if *iterations > 10000 {
+                            *quit = true;
+
+                            return;
+                        }
+
+                        if transformed.len() >= target.len() && !*quit {
                             fabricate_molecule_work(
                                 &transformed,
                                 target,
                                 transformations,
-                                step_stack,
-                                step_stacks,
+                                working_steps,
+                                steps,
+                                iterations,
+                                quit,
                             );
-                            step_stack.pop();
-                        } else {
-                            step_stack.pop();
+
+                            *working_steps -= 1;
                         }
                     }
                 }
