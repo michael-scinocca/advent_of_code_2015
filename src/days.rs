@@ -10,6 +10,7 @@ mod day17;
 mod day18;
 mod day19;
 mod day2;
+mod day21;
 mod day3;
 mod day4;
 mod day5;
@@ -58,6 +59,8 @@ pub fn run_day_part(day: i32, part: i32) {
         (18, 2) => day18::part2(),
         (19, 1) => day19::part1(),
         (19, 2) => day19::part2(),
+        (21, 1) => day21::part1(),
+        (21, 2) => day21::part2(),
         _ => (),
     }
 }
