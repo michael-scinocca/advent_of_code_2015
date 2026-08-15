@@ -175,5 +175,14 @@ pub fn part1() {
 }
 
 pub fn part2() {
-    println!("Day 23 Part 2");
+    let program = compile_program();
+
+    let mut cpu = Cpu {
+        reg_a: 1,
+        ..Cpu::new()
+    };
+
+    while cpu.execute(&program) {
+        println!("{:?}", cpu);
+    }
 }
