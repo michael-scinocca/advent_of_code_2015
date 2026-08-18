@@ -30,7 +30,7 @@ impl Cpu {
     fn pc_index(&self) -> usize {
         self.pc * 3
     }
-    
+
     fn execute(&mut self, program: &[u8]) -> bool {
         if self.pc_index() > program.len() - 3 {
             return false;
@@ -65,7 +65,7 @@ impl Cpu {
             Instruction::JIE => {
                 let register = self.get_register(&program[self.pc_index() + 1]);
 
-                if *register % 2 != 0 {
+                if !(*register).is_multiple_of(2) {
                     self.pc += 1;
                     return true;
                 }
@@ -99,10 +99,7 @@ impl Cpu {
     fn jump(&mut self, offset: &u8) {
         let jump = *offset as i8 as isize;
 
-        self.pc = self
-            .pc
-            .checked_add_signed(jump)
-            .unwrap();
+        self.pc = self.pc.checked_add_signed(jump).unwrap();
     }
 }
 
@@ -117,7 +114,7 @@ fn compile_program() -> Vec<u8> {
         if line.is_empty() {
             continue;
         }
-        
+
         let mut line_parts = line.split(" ");
 
         match line_parts.next().unwrap() {
