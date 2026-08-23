@@ -40,41 +40,27 @@ fn process_input(input: &[i64], groups: i64) {
 }
 
 fn find_combinations(total: i64, weights: &[i64]) -> Vec<Vec<i64>> {
-    let mut combination = Vec::new();
     let mut combinations = Vec::new();
+    let mut combination = Vec::new();
 
-    find_working_combination(total, weights, &mut combination, &mut combinations);
+    find_combination(total, weights, &mut combination, &mut combinations);
 
     combinations
 }
 
-fn find_working_combination(
+fn find_combination(
     total: i64,
     weights: &[i64],
     combination: &mut Vec<i64>,
     combinations: &mut Vec<Vec<i64>>,
 ) {
-    for i in 0..=1 {
-        let weight = &weights[0];
+    if combination.iter().sum::<i64>() == total {
+        combinations.push(combination.clone());
+    }
 
-        if i == 1 {
-            combination.push(*weight);
-        } else {
-            let position = combination.iter().position(|x| x == weight);
-
-            if let Some(position) = position {
-                combination.remove(position);
-            }
-        }
-
-        if weights.len() > 1 {
-            find_working_combination(total, &weights[1..], combination, combinations);
-        } else {
-            let working_total: i64 = combination.iter().sum();
-
-            if working_total == total {
-                combinations.push(combination.clone());
-            }
-        }
+    for (i, weight) in weights.iter().enumerate() {
+        combination.push(*weight);
+        find_combination(total, &weights[i + 1..], combination, combinations);
+        combination.pop();
     }
 }
